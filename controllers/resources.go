@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	httpv1alpha1 "github.com/raihankhan/httpApiServer-controller-kubebuilder/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -50,7 +49,7 @@ func newDeployment(apiServer httpv1alpha1.Apiserver) *appsv1.Deployment {
 }
 
 func newService(apiServer httpv1alpha1.Apiserver) *corev1.Service {
-	defer fmt.Println("created service")
+
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      apiServer.Spec.Name + "-np",

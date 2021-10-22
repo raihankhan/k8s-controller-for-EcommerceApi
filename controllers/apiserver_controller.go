@@ -18,6 +18,7 @@ package controllers
 
 import (
 	"context"
+	"fmt"
 	v1 "k8s.io/api/apps/v1"
 	v12 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -87,6 +88,7 @@ func (r *ApiserverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			log.Error(err, "failed ot create deployment")
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
+		fmt.Println("created deployment")
 	} else {
 		//if we get deployment ,let's update to desired spec
 		if deploy.Spec.Replicas != apiserver.Spec.Replicas {
@@ -127,6 +129,7 @@ func (r *ApiserverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			log.Error(err, "failed ot create nodeport type service")
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
+		fmt.Println("created service")
 	}
 
 	// your logic here
