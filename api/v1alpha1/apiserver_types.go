@@ -37,7 +37,8 @@ type ApiserverSpec struct {
 type ApiserverStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
-	Created bool `json:"created,omitempty"`
+	Created           bool  `json:"created,omitempty"`
+	AvailableReplicas int32 `json:"available_replicas,omitempty"`
 }
 
 //+kubebuilder:object:root=true

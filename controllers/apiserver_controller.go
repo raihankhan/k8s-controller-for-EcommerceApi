@@ -18,8 +18,11 @@ package controllers
 
 import (
 	"context"
-
+	v1 "k8s.io/api/apps/v1"
+	v12 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -56,20 +59,74 @@ func (r *ApiserverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 
 	if err != nil {
 		log.Error(err, "failed to get apiserver")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
-	desiredApiServer := newDeployment(apiserver)
-	err = r.Create(ctx, desiredApiServer)
-	if err != nil {
-		log.Error(err, "failed ot create apiserver")
-		return ctrl.Result{}, err
+	//create or update deployment
+
+	var deploy v1.Deployment
+
+	deplName := types.NamespacedName{
+		Name:      apiserver.Spec.Name + "-depl",
+		Namespace: req.Namespace,
 	}
 
-	desiredService := newService(apiserver)
-	err = r.Create(ctx, desiredService)
+	// get deployment
+	err = r.Get(ctx, deplName, &deploy)
 	if err != nil {
-		log.Error(err, "failed ot create nodeport type service")
-		return ctrl.Result{}, err
+
+		// if deployment exists
+		if !errors.IsNotFound(err) {
+			return ctrl.Result{}, err
+		}
+
+		// if deployment doesn't exist , new deployment is created
+		desiredApiServer := newDeployment(apiserver)
+		err = r.Create(ctx, desiredApiServer)
+		if err != nil {
+			log.Error(err, "failed ot create deployment")
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
+	} else {
+		//if we get deployment ,let's update to desired spec
+		if deploy.Spec.Replicas != apiserver.Spec.Replicas {
+			deploy.Spec.Replicas = apiserver.Spec.Replicas
+			err = r.Update(ctx, &deploy)
+			if err != nil {
+				log.Error(err, "unable to update deployment")
+				return ctrl.Result{}, client.IgnoreNotFound(err)
+			}
+		}
+
+		apiserver.Status.AvailableReplicas = deploy.Status.AvailableReplicas
+		_ = r.Status().Update(ctx, &deploy)
+	}
+
+	// create or update service
+
+	var svc v12.Service
+
+	svcName := types.NamespacedName{
+		Name:      apiserver.Spec.Name + "-np",
+		Namespace: req.Namespace,
+	}
+
+	// get service
+	err = r.Get(ctx, svcName, &svc)
+	if err != nil {
+
+		// if service exists
+		if !errors.IsNotFound(err) {
+			return ctrl.Result{}, err
+		}
+
+		// if Service doesn't exist , new service is created
+		desiredService := newService(apiserver)
+		err = r.Create(ctx, desiredService)
+		if err != nil {
+			log.Error(err, "failed ot create nodeport type service")
+			return ctrl.Result{}, client.IgnoreNotFound(err)
+		}
 	}
 
 	// your logic here
@@ -81,5 +138,7 @@ func (r *ApiserverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 func (r *ApiserverReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&httpv1alpha1.Apiserver{}).
+		Owns(&v1.Deployment{}).
+		Owns(&v12.Service{}).
 		Complete(r)
 }

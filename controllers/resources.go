@@ -17,7 +17,7 @@ func newDeployment(apiServer httpv1alpha1.Apiserver) *appsv1.Deployment {
 
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      apiServer.Spec.Name + "depl",
+			Name:      apiServer.Spec.Name + "-depl",
 			Namespace: apiServer.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -53,7 +53,7 @@ func newService(apiServer httpv1alpha1.Apiserver) *corev1.Service {
 	defer fmt.Println("created service")
 	return &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      apiServer.Spec.Name + "np",
+			Name:      apiServer.Spec.Name + "-np",
 			Namespace: apiServer.Namespace,
 		},
 		Spec: corev1.ServiceSpec{
