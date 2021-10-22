@@ -1,0 +1,16 @@
+domain: appscode.com
+layout:
+- go.kubebuilder.io/v3
+projectName: httpapiserver-controller-kubebuilder
+repo: github.com/raihankhan/httpApiServer-controller-kubebuilder
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: appscode.com
+  group: http
+  kind: Apiserver
+  path: github.com/raihankhan/httpApiServer-controller-kubebuilder/api/v1alpha1
+  version: v1alpha1
+version: "3"

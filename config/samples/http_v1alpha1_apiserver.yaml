@@ -1,0 +1,9 @@
+apiVersion: http.appscode.com/v1alpha1
+kind: Apiserver
+metadata:
+  name: apiserver-1
+  namespace: api
+spec:
+  # Add fields here
+  deployment_name: apiserver-depl
+  replicas: 2
