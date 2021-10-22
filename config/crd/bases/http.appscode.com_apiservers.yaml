@@ -36,7 +36,7 @@ spec:
           spec:
             description: ApiserverSpec defines the desired state of Apiserver
             properties:
-              deployment_name:
+              name:
                 description: DeploymentName is a field of Apiserver. Edit apiserver_types.go
                   to remove/update
                 type: string

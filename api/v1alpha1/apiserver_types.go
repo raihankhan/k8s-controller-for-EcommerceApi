@@ -29,8 +29,8 @@ type ApiserverSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	// DeploymentName is a field of Apiserver. Edit apiserver_types.go to remove/update
-	DeploymentName string `json:"deployment_name,omitempty"`
-	Replicas       *int32 `json:"replicas,omitempty"`
+	Name     string `json:"name,omitempty"`
+	Replicas *int32 `json:"replicas,omitempty"`
 }
 
 // ApiserverStatus defines the observed state of Apiserver

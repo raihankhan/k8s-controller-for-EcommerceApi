@@ -65,6 +65,13 @@ func (r *ApiserverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, err
 	}
 
+	desiredService := newService(apiserver)
+	err = r.Create(ctx, desiredService)
+	if err != nil {
+		log.Error(err, "failed ot create nodeport type service")
+		return ctrl.Result{}, err
+	}
+
 	// your logic here
 
 	return ctrl.Result{}, nil

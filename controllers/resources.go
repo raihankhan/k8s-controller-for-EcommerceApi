@@ -1,10 +1,12 @@
 package controllers
 
 import (
+	"fmt"
 	httpv1alpha1 "github.com/raihankhan/httpApiServer-controller-kubebuilder/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func newDeployment(apiServer httpv1alpha1.Apiserver) *appsv1.Deployment {
@@ -15,7 +17,7 @@ func newDeployment(apiServer httpv1alpha1.Apiserver) *appsv1.Deployment {
 
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      apiServer.Spec.DeploymentName,
+			Name:      apiServer.Spec.Name + "depl",
 			Namespace: apiServer.Namespace,
 		},
 		Spec: appsv1.DeploymentSpec{
@@ -43,6 +45,29 @@ func newDeployment(apiServer httpv1alpha1.Apiserver) *appsv1.Deployment {
 					},
 				},
 			},
+		},
+	}
+}
+
+func newService(apiServer httpv1alpha1.Apiserver) *corev1.Service {
+	defer fmt.Println("created service")
+	return &corev1.Service{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      apiServer.Spec.Name + "np",
+			Namespace: apiServer.Namespace,
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					Protocol:   corev1.ProtocolTCP,
+					TargetPort: intstr.IntOrString{IntVal: 8080},
+					Port:       8080,
+				},
+			},
+			Selector: map[string]string{
+				"httpv1alpha1/apiserver": apiServer.ObjectMeta.Name,
+			},
+			Type: corev1.ServiceTypeNodePort,
 		},
 	}
 }
