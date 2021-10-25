@@ -22,10 +22,12 @@ import (
 	v1 "k8s.io/api/apps/v1"
 	v12 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	httpv1alpha1 "github.com/raihankhan/httpApiServer-controller-kubebuilder/api/v1alpha1"
@@ -88,10 +90,17 @@ func (r *ApiserverReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			log.Error(err, "failed ot create deployment")
 			return ctrl.Result{}, client.IgnoreNotFound(err)
 		}
+		err := controllerutil.SetOwnerReference(&apiserver, &deploy, r.Scheme)
+		if err != nil {
+			return ctrl.Result{}, err
+		}
 		fmt.Println("created deployment")
 	} else {
+		if !metav1.IsControlledBy(&deploy, &apiserver) {
+			return ctrl.Result{}, err
+		}
 		//if we get deployment ,let's update to desired spec
-		if deploy.Spec.Replicas != apiserver.Spec.Replicas {
+		if apiserver.Spec.Replicas!=nil && *deploy.Spec.Replicas != *apiserver.Spec.Replicas {
 			deploy.Spec.Replicas = apiserver.Spec.Replicas
 			err = r.Update(ctx, &deploy)
 			if err != nil {
